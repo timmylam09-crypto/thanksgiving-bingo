@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦃 Friendsgiving Musik Bingo</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #fff7ec, #ffe6cc);
+  margin: 0; padding: 0;
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh;
+}
+.card {
+  background: #fffaf0;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  max-width: 600px;
+  width: 100%;
+}
+h1 {
+  text-align: center;
+  color: #b35400;
+  font-size: 24px;
+}
+p { text-align: center; color: #5a3a00; margin-top: 5px; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+td {
+  border: 3px solid #f7c59f;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  background: #fff5e6;
+  transition: all 0.2s ease;
+}
+td.marked {
+  background: #ffd9b3;
+  text-decoration: line-through;
+  color: #5a3a00;
+  font-weight: bold;
+}
+button {
+  margin: 5px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  background: #ff9800;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+button.secondary { background: #d9d9d9; color: #333; }
+.controls { text-align: center; margin-top: 10px; display:flex; justify-content:center; flex-wrap:wrap;}
+button span { margin-left:5px; }
+.small { text-align:center; font-size:12px; color:#6b4b2b; margin-top:5px;}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🦃 Friendsgiving Musik Bingo 🎶</h1>
+<p>Tryk på felterne for at markere bingochips. Luk og åbn siden igen for ny tilfældig plade.</p>
+<div id="boardArea"></div>
+<div class="controls">
+<button id="newBtn">🎵 <span>Ny tilfældig plade</span></button>
+<button id="resetBtn" class="secondary">🔄 <span>Nulstil markeringer</span></button>
+</div>
+<div class="small">Tip: Upload filen til GitHub Pages eller Netlify og del QR-kode for gæsterne.</div>
+</div>
+
+<script>
+// 8 unikke plader
+const boards = [
+["Thank You, Next – Ariana Grande","Count on Me – Bruno Mars","YMCA – Village People","Happy – Pharrell Williams","September – Earth, Wind & Fire","Celebration – Kool & the Gang","Family Affair – Mary J. Blige","Cake by the Ocean – DNCE","Sugar – Maroon 5","Watermelon Sugar – Harry Styles","Can’t Help Falling in Love – Elvis Presley","Africa – Toto","Footloose – Kenny Loggins","Billie Jean – Michael Jackson","Party in the U.S.A – Miley Cyrus"],
+["I Wanna Dance with Somebody – Whitney Houston","Sweet Home Alabama – Lynyrd Skynyrd","Dreams – Fleetwood Mac","Purple Rain – Prince","Superstition – Stevie Wonder","Summer of ’69 – Bryan Adams","Hotel California – Eagles","I Got You (I Feel Good) – James Brown","Teenage Dream – Katy Perry","California Gurls – Katy Perry","Born in the U.S.A – Bruce Springsteen","Lose Yourself – Eminem","I Will Always Love You – Whitney Houston","Take Me Home, Country Roads – John Denver","I Want It That Way – Backstreet Boys"],
+["Celebration – Kool & the Gang","Billie Jean – Michael Jackson","Dreams – Fleetwood Mac","Count on Me – Bruno Mars","Superstition – Stevie Wonder","Africa – Toto","Happy – Pharrell Williams","Can’t Help Falling in Love – Elvis Presley","Born in the U.S.A – Bruce Springsteen","California Gurls – Katy Perry","Party in the U.S.A – Miley Cyrus","Footloose – Kenny Loggins","I Want It That Way – Backstreet Boys","Hotel California – Eagles","Thank You, Next – Ariana Grande"],
+["YMCA – Village People","Superstition – Stevie Wonder","Sweet Home Alabama – Lynyrd Skynyrd","Happy – Pharrell Williams","Purple Rain – Prince","Summer of ’69 – Bryan Adams","Watermelon Sugar – Harry Styles","Sugar – Maroon 5","Celebration – Kool & the Gang","Footloose – Kenny Loggins","Dreams – Fleetwood Mac","Count on Me – Bruno Mars","Party in the U.S.A – Miley Cyrus","Born in the U.S.A – Bruce Springsteen","I Will Always Love You – Whitney Houston"],
+["Africa – Toto","September – Earth, Wind & Fire","Cake by the Ocean – DNCE","Teenage Dream – Katy Perry","Count on Me – Bruno Mars","I Got You (I Feel Good) – James Brown","Can’t Help Falling in Love – Elvis Presley","Hotel California – Eagles","I Wanna Dance with Somebody – Whitney Houston","Lose Yourself – Eminem","Celebration – Kool & the Gang","Sugar – Maroon 5","Dreams – Fleetwood Mac","Happy – Pharrell Williams","Take Me Home, Country Roads – John Denver"],
+["Thank You, Next – Ariana Grande","Purple Rain – Prince","Billie Jean – Michael Jackson","I Want It That Way – Backstreet Boys","Superstition – Stevie Wonder","Cake by the Ocean – DNCE","Watermelon Sugar – Harry Styles","I Will Always Love You – Whitney Houston","YMCA – Village People","Born in the U.S.A – Bruce Springsteen","Party in the U.S.A – Miley Cyrus","Teenage Dream – Katy Perry","Sweet Home Alabama – Lynyrd Skynyrd","Count on Me – Bruno Mars","Africa – Toto"],
+["Footloose – Kenny Loggins","Happy – Pharrell Williams","Dreams – Fleetwood Mac","September – Earth, Wind & Fire","Hotel California – Eagles","Celebration – Kool & the Gang","Party in the U.S.A – Miley Cyrus","Summer of ’69 – Bryan Adams","Sugar – Maroon 5","Can’t Help Falling in Love – Elvis Presley","I Got You (I Feel Good) – James Brown","Take Me Home, Country Roads – John Denver","Lose Yourself – Eminem","California Gurls – Katy Perry","I Want It That Way – Backstreet Boys"],
+["Born in the U.S.A – Bruce Springsteen","Celebration – Kool & the Gang","Count on Me – Bruno Mars","Watermelon Sugar – Harry Styles","Sweet Home Alabama – Lynyrd Skynyrd","I Wanna Dance with Somebody – Whitney Houston","Africa – Toto","Happy – Pharrell Williams","Purple Rain – Prince","Billie Jean – Michael Jackson","Dreams – Fleetwood Mac","Sugar – Maroon 5","I Will Always Love You – Whitney Houston","Hotel California – Eagles","Teenage Dream – Katy Perry"]
+];
+
+function makeTable(board){
+  const table=document.createElement('table');
+  let idx=0;
+  for(let r=0;r<5;r++){
+    const tr=document.createElement('tr');
+    for(let c=0;c<3;c++){
+      const td=document.createElement('td');
+      td.textContent=board[idx++];
+      td.addEventListener('click',()=>td.classList.toggle('marked'));
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  return table;
+}
+
+function newBoard(){
+  const i=Math.floor(Math.random()*boards.length);
+  const board=boards[i];
+  const area=document.getElementById('boardArea');
+  area.innerHTML='';
+  area.appendChild(makeTable(board));
+  sessionStorage.setItem('bingo_index',i);
+}
+
+document.getElementById('newBtn').addEventListener('click',()=>{newBoard();});
+document.getElementById('resetBtn').addEventListener('click',()=>{document.querySelectorAll('td.marked').forEach(td=>td.classList.remove('marked'));});
+window.addEventListener('load',()=>{const si=sessionStorage.getItem('bingo_index');if(si!==null){const board=boards[parseInt(si)];document.getElementById('boardArea').appendChild(makeTable(board));}else{newBoard();}});
+</script>
+</body>
+</html>
